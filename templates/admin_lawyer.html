@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Informações - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-user me-3"></i>Informações Pessoais</h1>
+        <p>Edite suas informações profissionais e de contato</p>
+    </div>
+
+    <div class="admin-card">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form.title.label(class="form-label") }}
+                {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                {% if form.title.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.title.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <small class="form-text text-muted">Ex: Advogada Especialista em Direito Civil e Empresarial</small>
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4")
+                }}
+                {% if form.description.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.description.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <small class="form-text text-muted">Descreva sua experiência e especialidades</small>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                        {% if form.phone.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.phone.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Ex: (11) 99999-9999</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.address.label(class="form-label") }}
+                        {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else "")) }}
+                        {% if form.address.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.address.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Endereço completo do escritório</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.lat.label(class="form-label") }}
+                        {{ form.lat(class="form-control" + (" is-invalid" if form.lat.errors else "")) }}
+                        {% if form.lat.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.lat.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Latitude para o mapa (ex: -23.5505)</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.lng.label(class="form-label") }}
+                        {{ form.lng(class="form-control" + (" is-invalid" if form.lng.errors else "")) }}
+                        {% if form.lng.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.lng.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Longitude para o mapa (ex: -46.6333)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Como obter as coordenadas:</strong>
+                <ol class="mb-0 mt-2">
+                    <li>Acesse <a href="https://www.google.com/maps" target="_blank">Google Maps</a></li>
+                    <li>Pesquise pelo endereço do seu escritório</li>
+                    <li>Clique com o botão direito no local exato</li>
+                    <li>Copie as coordenadas que aparecem no topo da janela</li>
+                </ol>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i>Salvar Alterações
+                </button>
+                <a href="{{ url_for('admin') }}" class="btn btn-outline-secondary btn-lg ms-3">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {% if lawyer %}
+    <div class="admin-card">
+        <h3><i class="fas fa-eye me-2"></i>Pré-visualização</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Informações Atuais:</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Nome:</strong> {{ lawyer.name }}</li>
+                    <li><strong>Título:</strong> {{ lawyer.title }}</li>
+                    <li><strong>Email:</strong> {{ lawyer.email }}</li>
+                    <li><strong>Telefone:</strong> {{ lawyer.phone }}</li>
+                    <li><strong>Endereço:</strong> {{ lawyer.address }}</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>WhatsApp:</h5>
+                <p>
+                    <a href="https://wa.me/55{{ lawyer.phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '') }}"
+                        class="btn btn-success btn-sm" target="_blank">
+                        <i class="fab fa-whatsapp me-2"></i>Testar Link
+                    </a>
+                </p>
+                <h5>Localização:</h5>
+                <p>Lat: {{ lawyer.lat }}, Lng: {{ lawyer.lng }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

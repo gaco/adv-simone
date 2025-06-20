@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Painel Administrativo - Simone Persin Côrtes{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-cog me-3"></i>Painel Administrativo</h1>
+        <p>Gerencie o conteúdo do seu portfólio</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="admin-card text-center">
+                <i class="fas fa-user fa-3x text-primary mb-3"></i>
+                <h3>Informações Pessoais</h3>
+                <p>Edite suas informações profissionais, contato e localização</p>
+                <a href="{{ url_for('admin_lawyer') }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="admin-card text-center">
+                <i class="fas fa-briefcase fa-3x text-primary mb-3"></i>
+                <h3>Serviços</h3>
+                <p>Adicione ou remova serviços oferecidos</p>
+                <p class="text-muted">
+                    {% if services %}
+                    {{ services|length }} serviço(s) cadastrado(s)
+                    {% else %}
+                    Nenhum serviço cadastrado
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('admin_services') }}" class="btn btn-primary">
+                    <i class="fas fa-cog me-2"></i>Gerenciar
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="admin-card text-center">
+                <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+                <h3>Sobre Nós</h3>
+                <p>Gerencie itens da seção "Sobre Nós"</p>
+                <p class="text-muted">
+                    {% if abouts %}
+                    {{ abouts|length }} item(s) cadastrado(s)
+                    {% else %}
+                    Nenhum item cadastrado
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('admin_about') }}" class="btn btn-primary">
+                    <i class="fas fa-cog me-2"></i>Gerenciar
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="admin-card text-center">
+                <div class="admin-card-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h4>{{ reviews|length + google_reviews_count }}</h4>
+                <p>Total de Avaliações</p>
+                <hr>
+                <small class="text-muted">
+                    {{ reviews|length }} manuais + {{ google_reviews_count }} do Google
+                </small>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin_reviews') }}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Gerenciar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h3><i class="fas fa-chart-line me-2"></i>Resumo do Portfólio</h3>
+
+        {% if lawyer %}
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Informações Atuais:</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Nome:</strong> {{ lawyer.name }}</li>
+                    <li><strong>Título:</strong> {{ lawyer.title }}</li>
+                    <li><strong>Email:</strong> {{ lawyer.email }}</li>
+                    <li><strong>Telefone:</strong> {{ lawyer.phone }}</li>
+                    <li><strong>Endereço:</strong> {{ lawyer.address }}</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>WhatsApp Link:</h5>
+                <p>
+                    <a href="https://wa.me/55{{ lawyer.phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '') }}"
+                        class="btn btn-success btn-sm" target="_blank">
+                        <i class="fab fa-whatsapp me-2"></i>Testar WhatsApp
+                    </a>
+                </p>
+
+                <h5>Localização:</h5>
+                <p>Lat: {{ lawyer.lat }}, Lng: {{ lawyer.lng }}</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Nenhuma informação pessoal cadastrada. <a href="{{ url_for('admin_lawyer') }}">Clique aqui para
+                adicionar</a>.
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="admin-card">
+        <h3><i class="fas fa-info-circle me-2"></i>Instruções</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <h5>1. Informações Pessoais</h5>
+                <p>Complete suas informações profissionais, incluindo nome, especialização, contato e localização do
+                    escritório.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>2. Serviços</h5>
+                <p>Adicione os serviços jurídicos que você oferece. Você pode usar ícones do Font Awesome para cada
+                    serviço.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>3. Avaliações</h5>
+                <p>Adicione avaliações de clientes para aumentar a credibilidade do seu portfólio.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Development Tools -->
+    <div class="admin-card bg-light">
+        <h3><i class="fas fa-tools me-2"></i>Ferramentas de Desenvolvimento</h3>
+        <p class="text-muted">Ferramentas úteis para desenvolvimento e testes</p>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Reset para Dados de Exemplo</h5>
+                <p>Restaura todos os dados para os valores de exemplo originais (Simone Persin Côrtes).
+                    <strong>Atenção:</strong> Esta ação irá sobrescrever todos os dados atuais.
+                </p>
+                <form method="POST" action="{{ url_for('admin_reset_data') }}"
+                    onsubmit="return confirm('Tem certeza que deseja resetar todos os dados? Esta ação não pode ser desfeita.')">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-undo me-2"></i>Resetar para Dados de Exemplo
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h5>Arquivos de Configuração</h5>
+                <p>Os dados de exemplo estão definidos em:</p>
+                <ul class="list-unstyled">
+                    <li><code>sample_data.py</code> - Dados de exemplo</li>
+                    <li><code>database.py</code> - Utilitários de banco de dados</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg">
+            <i class="fas fa-eye me-2"></i>Ver Portfólio
+        </a>
+    </div>
+</div>
+{% endblock %}

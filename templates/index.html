@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<!-- Leaflet CSS for OpenStreetMap -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#home">
+            <i class="fas fa-balance-scale me-2"></i>
+            {% if lawyer %}{{ lawyer.name }}{% else %}Simone Persin Côrtes{% endif %}
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#home">Início</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">Sobre</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#services">Serviços</a>
+                </li>
+                {% if reviews and reviews|length > 0 %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#reviews">Avaliações</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">Contato</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section id="home" class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        {% if lawyer %}{{ lawyer.name }}{% else %}Simone Persin Côrtes{% endif %}
+                    </h1>
+                    <p class="hero-subtitle">
+                        {% if lawyer %}{{ lawyer.title }}{% else %}Advogada Especialista em Direito Civil e
+                        Empresarial{% endif %}
+                    </p>
+                    <p class="hero-description">
+                        {% if lawyer %}{{ lawyer.description }}{% else %}Com mais de 10 anos de experiência, Simone
+                        Persin Côrtes
+                        é uma advogada dedicada e comprometida em oferecer soluções jurídicas eficazes para seus
+                        clientes.{% endif %}
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#contact" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-phone me-2"></i>Consulta Gratuita
+                        </a>
+                        {% if lawyer %}
+                        <a href="https://wa.me/55{{ lawyer.phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '') }}"
+                            class="btn btn-success btn-lg" target="_blank">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                        </a>
+                        {% else %}
+                        <a href="https://wa.me/5511999999999" class="btn btn-success btn-lg" target="_blank">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <img src="{{ url_for('static', filename='images/lawyer-hero.jpg') }}"
+                        alt="Advogada Simone Persin Côrtes" class="img-fluid rounded-3 shadow-lg">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center mb-5">
+                <h2 class="section-title">Sobre Nós</h2>
+                <p class="section-subtitle">Conheça nossos valores e compromissos</p>
+            </div>
+        </div>
+        <div class="row">
+            {% if abouts %}
+            {% for about in abouts %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="service-card h-100">
+                    <div class="service-icon">
+                        <i class="{{ about.icon }}"></i>
+                    </div>
+                    <h4>{{ about.title }}</h4>
+                    <p>{{ about.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            {% if lawyer and lawyer.about %}
+            <div class="col-lg-12">
+                <div class="about-content mt-4">
+                    {{ lawyer.about | safe }}
+                </div>
+            </div>
+            {% else %}
+            <div class="col-lg-8 text-center mx-auto">
+                <p class="section-subtitle">Comprometidos com a excelência jurídica</p>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <i class="fas fa-gavel"></i>
+                        <h3>10+</h3>
+                        <p>Anos de Experiência</p>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <h3>500+</h3>
+                        <p>Clientes Atendidos</p>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-trophy"></i>
+                        <h3>95%</h3>
+                        <p>Taxa de Sucesso</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="services-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center mb-5">
+                <h2 class="section-title">Nossos Serviços</h2>
+                <p class="section-subtitle">Soluções jurídicas completas para você</p>
+            </div>
+        </div>
+        <div class="row">
+            {% if services %}
+            {% for service in services %}
+            <div class="col-lg-6 col-md-6 mb-4">
+                <div class="service-card h-100">
+                    <div class="service-icon">
+                        <i class="{{ service.icon }}"></i>
+                    </div>
+                    <h4>{{ service.title }}</h4>
+                    <p>{{ service.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="col-lg-6 col-md-6 mb-4">
+                <div class="service-card h-100">
+                    <div class="service-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h4>Direito Civil</h4>
+                    <p>Contratos, responsabilidade civil, direito de família e sucessões.</p>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 mb-4">
+                <div class="service-card h-100">
+                    <div class="service-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h4>Direito Empresarial</h4>
+                    <p>Constituição de empresas, contratos comerciais e consultoria empresarial.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Reviews Section -->
+{% if reviews and reviews|length > 0 %}
+<section id="reviews" class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2 class="section-heading">O que dizem nossos clientes</h2>
+                <p class="section-description">Depoimentos reais de clientes satisfeitos</p>
+            </div>
+        </div>
+
+        <!-- Reviews Carousel -->
+        <div class="reviews-carousel-container mt-5">
+            <div class="reviews-carousel" id="reviewsCarousel">
+                {% for review in reviews %}
+                <div class="review-slide">
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if review.source == 'google' and review.profile_photo %}
+                                <img src="{{ review.profile_photo }}" alt="Foto do perfil" class="review-avatar me-3">
+                                {% else %}
+                                <div
+                                    class="review-avatar bg-primary d-flex align-items-center justify-content-center me-3">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="review-name mb-1">{{ review.client_name }}</h5>
+                                    <div class="review-source">
+                                        {% if review.source == 'google' %}
+                                        <i class="fab fa-google me-1"></i>Google Maps
+                                        {% if review.relative_time %}
+                                        <small class="text-muted ms-1">{{ review.relative_time }}</small>
+                                        {% endif %}
+                                        {% else %}
+                                        <i class="fas fa-user-edit me-1"></i>Cliente
+                                        <small class="text-muted ms-1">{{ review.date_created.strftime('%m/%Y')
+                                            }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-rating mb-3">
+                                {% for i in range(5) %}
+                                {% if i < review.rating %} <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-muted"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                            </div>
+                        </div>
+                        <div class="review-body">
+                            {% if review.comment %}
+                            <blockquote class="mb-0">
+                                "{{ review.comment }}"
+                            </blockquote>
+                            {% else %}
+                            <div class="text-muted text-center d-flex align-items-center justify-content-center h-100">
+                                <i class="fas fa-star-o"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Navigation buttons -->
+            <button class="carousel-btn carousel-btn-prev">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-btn carousel-btn-next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <!-- Dots indicator (will be populated by JavaScript) -->
+            <div class="carousel-dots mt-4"></div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Contact Section -->
+<section id="contact" class="contact-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center mb-5">
+                <h2 class="section-title">Entre em Contato</h2>
+                <p class="section-subtitle">Estamos aqui para ajudar você</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h5>Telefone</h5>
+                            <p>{% if lawyer %}{{ lawyer.phone }}{% else %}(11) 99999-9999{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h5>Email</h5>
+                            <p>{% if lawyer %}{{ lawyer.email }}{% else %}jenny.cort@advocacia.com{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h5>Endereço</h5>
+                            <p>{% if lawyer %}{{ lawyer.address }}{% else %}Rua Augusta, 123 - Consolação, São Paulo -
+                                SP{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        {% if lawyer %}
+                        <a href="https://wa.me/55{{ lawyer.phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '') }}"
+                            class="btn btn-success btn-lg" target="_blank">
+                            <i class="fab fa-whatsapp me-2"></i>Falar no WhatsApp
+                        </a>
+                        {% else %}
+                        <a href="https://wa.me/5511999999999" class="btn btn-success btn-lg" target="_blank">
+                            <i class="fab fa-whatsapp me-2"></i>Falar no WhatsApp
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div id="map" style="height: 400px; border-radius: 10px;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer py-4">
+    <div class="container text-center">
+        <p>&copy; 2024 {% if lawyer %}{{ lawyer.name }}{% else %}Simone Persin Côrtes{% endif %} - Todos os direitos
+            reservados
+        </p>
+        <p>
+            <a href="/admin" class="text-muted">Área Administrativa</a>
+        </p>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    function initMap() {
+        {% if lawyer and lawyer.lat and lawyer.lng %}
+        var lat = parseFloat("{{ lawyer.lat }}");
+        var lng = parseFloat("{{ lawyer.lng }}");
+        {% else %}
+        var lat = -23.5505;
+        var lng = -46.6333;
+        {% endif %}
+
+        // Create map
+        var map = L.map('map').setView([lat, lng], 15);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add marker
+        var marker = L.marker([lat, lng]).addTo(map);
+
+        // Add popup
+        marker.bindPopup(
+            '<div style="text-align: center;"><h5>{% if lawyer %}{{ lawyer.name }}{% else %}Simone Persin Côrtes{% endif %}</h5><p>{% if lawyer %}{{ lawyer.address }}{% else %}Rua Augusta, 123 - Consolação, São Paulo - SP{% endif %}</p></div>'
+        ).openPopup();
+    }
+
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        initMap();
+    });
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Change navbar background on scroll
+    window.addEventListener('scroll', function () {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+            navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            navbar.style.backdropFilter = 'blur(10px)';
+        } else {
+            navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            navbar.style.backdropFilter = 'blur(5px)';
+        }
+    });
+
+    // --- START: INFINITE CAROUSEL SCRIPT (FINAL) ---
+    document.addEventListener('DOMContentLoaded', function () {
+        const carousel = document.getElementById('reviewsCarousel');
+        if (!carousel) return;
+
+        const container = carousel.parentElement;
+        const prevBtn = document.querySelector('.carousel-btn-prev');
+        const nextBtn = document.querySelector('.carousel-btn-next');
+
+        let originalSlides = Array.from(carousel.children);
+        let currentIndex = 0;
+        let slideWidth = 0;
+        let isTransitioning = false;
+
+        function setupCarousel() {
+            if (originalSlides.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                return;
+            }
+
+            // --- 1. Clone slides for the infinite effect ---
+            const clonesToCreate = Math.min(originalSlides.length, 5); // Clone up to 5 slides
+            for (let i = 0; i < clonesToCreate; i++) {
+                const clone = originalSlides[i].cloneNode(true);
+                clone.classList.add('clone');
+                carousel.appendChild(clone);
+            }
+            for (let i = originalSlides.length - 1; i >= originalSlides.length - clonesToCreate; i--) {
+                const clone = originalSlides[i].cloneNode(true);
+                clone.classList.add('clone');
+                carousel.prepend(clone);
+            }
+
+            // --- 2. Calculate dimensions and set initial position ---
+            const gap = parseFloat(window.getComputedStyle(carousel).gap) || 20;
+            slideWidth = carousel.querySelector('.review-slide').offsetWidth + gap;
+            currentIndex = clonesToCreate; // Start at the first real slide
+
+            carousel.style.transition = 'none'; // No animation for initial setup
+            carousel.style.transform = `translateX(${-currentIndex * slideWidth}px)`;
+
+            setTimeout(() => {
+                carousel.style.transition = 'transform 0.5s ease-in-out';
+            }, 50);
+        }
+
+        function slide(direction) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            if (direction === 'next') {
+                currentIndex++;
+            } else {
+                currentIndex--;
+            }
+            carousel.style.transform = `translateX(${-currentIndex * slideWidth}px)`;
+        }
+
+        carousel.addEventListener('transitionend', () => {
+            const allSlides = Array.from(carousel.children);
+            const clonesAtStart = carousel.querySelectorAll('.clone:first-child').length;
+
+            // Jump to the first real slide if we've reached the end clones
+            if (currentIndex >= originalSlides.length + clonesAtStart) {
+                carousel.style.transition = 'none';
+                currentIndex = clonesAtStart;
+                carousel.style.transform = `translateX(${-currentIndex * slideWidth}px)`;
+            }
+            // Jump to the last real slide if we've reached the start clones
+            if (currentIndex < clonesAtStart) {
+                carousel.style.transition = 'none';
+                currentIndex = originalSlides.length + clonesAtStart - 1;
+                carousel.style.transform = `translateX(${-currentIndex * slideWidth}px)`;
+            }
+
+            // Re-enable transition after the jump
+            setTimeout(() => {
+                carousel.style.transition = 'transform 0.5s ease-in-out';
+                isTransitioning = false;
+            }, 50);
+        });
+
+        // --- Auto-scroll and Interaction Handling ---
+        let autoScrollInterval = null;
+
+        function startAutoScroll() {
+            if (autoScrollInterval) clearInterval(autoScrollInterval);
+            autoScrollInterval = setInterval(() => slide('next'), 4000);
+        }
+
+        function resetAutoScroll() {
+            clearInterval(autoScrollInterval);
+            startAutoScroll();
+        }
+
+        prevBtn.addEventListener('click', () => { slide('prev'); resetAutoScroll(); });
+        nextBtn.addEventListener('click', () => { slide('next'); resetAutoScroll(); });
+        container.addEventListener('mouseenter', () => clearInterval(autoScrollInterval));
+        container.addEventListener('mouseleave', startAutoScroll);
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Re-initialize carousel on resize
+                carousel.innerHTML = '';
+                originalSlides.forEach(slide => carousel.appendChild(slide));
+                setupCarousel();
+            }, 250);
+        });
+
+        // Initial Setup
+        setupCarousel();
+        startAutoScroll();
+    });
+    // --- END: INFINITE CAROUSEL SCRIPT (FINAL) ---
+</script>
+{% endblock %}
