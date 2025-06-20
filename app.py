@@ -412,7 +412,7 @@ with app.app_context():
     try:
         # Initialize database using the new separated structure
         initialize_database(db, Lawyer, Service, About, Review)
-    except Exception as e
+    except Exception as e:
         print(f"Database initialization error: {e}")
         
 if __name__ == "__main__":
