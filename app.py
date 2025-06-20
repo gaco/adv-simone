@@ -407,12 +407,15 @@ def admin_reset_data():
         flash(f"Erro ao resetar dados: {str(e)}", "error")
     return redirect(url_for("admin"))
 
-
-if __name__ == "__main__":
-    with app.app_context():
+# Initialize database for all environments (including Vercel)
+with app.app_context():
+    try:
         # Initialize database using the new separated structure
         initialize_database(db, Lawyer, Service, About, Review)
-
+    except Exception as e
+        print(f"Database initialization error: {e}")
+        
+if __name__ == "__main__":
     # Production vs Development configuration
     if os.getenv("FLASK_ENV") == "production":
         # Production settings
