@@ -1,23 +1,27 @@
 import os
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, url_for
+# Load environment variables from .env file BEFORE imports that need them
+load_dotenv()
+
+from flask import Flask, flash, redirect, render_template, url_for, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import FloatField, IntegerField, StringField, TextAreaField
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from wtforms import FloatField, IntegerField, StringField, TextAreaField, PasswordField
 from wtforms.validators import DataRequired, Email, Length
 
-# Import our database utilities
 from database import init_db as initialize_database
 from database import reset_sample_data
 
-# Import Google Reviews service
 from google_reviews import get_google_reviews
 from sample_data import GOOGLE_PLACE_ID
 
-# Load environment variables from .env file
-load_dotenv()
+# Debug print
+print(f"DEBUG - GOOGLE_PLACE_ID from env: {os.getenv('GOOGLE_PLACE_ID')}")
+print(f"DEBUG - GOOGLE_PLACE_ID from sample_data: {GOOGLE_PLACE_ID}")
 
 app = Flask(__name__)
 
@@ -39,8 +43,31 @@ else:
 
 db = SQLAlchemy(app)
 
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Por favor, faça login para acessar esta página.'
+login_manager.login_message_category = 'warning'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
 
 # Models
+class User(UserMixin, db.Model):
+    """User model for authentication."""
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(120), nullable=False)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
 class Lawyer(db.Model):
     """
     Lawyer model - represents the single lawyer profile.
@@ -61,7 +88,7 @@ class Lawyer(db.Model):
     @staticmethod
     def get_lawyer():
         """Helper method to get the single lawyer record."""
-        return Lawyer.query.first()
+        return db.session.scalars(db.select(Lawyer).limit(1)).first()
 
 
 class Service(db.Model):
@@ -96,11 +123,9 @@ class Review(db.Model):
     def get_combined_reviews(limit=None):
         """Get combined manual and Google reviews"""
         # Get manual reviews from database
-        manual_reviews = (
-            Review.query.filter_by(source="manual")
-            .order_by(Review.date_created.desc())
-            .all()
-        )
+        manual_reviews = db.session.scalars(
+            db.select(Review).filter_by(source="manual").order_by(Review.date_created.desc())
+        ).all()
 
         # Get Google reviews
         try:
@@ -175,13 +200,47 @@ class ReviewForm(FlaskForm):
     comment = TextAreaField("Comentário", validators=[DataRequired()])
 
 
+class LoginForm(FlaskForm):
+    username = StringField("Usuário", validators=[DataRequired()])
+    password = PasswordField("Senha", validators=[DataRequired()])
+
+
 # Routes
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("admin"))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = db.session.scalars(db.select(User).filter_by(username=form.username.data)).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            next_page = request.args.get('next')
+            if not next_page or not next_page.startswith('/'):
+                next_page = url_for('admin')
+            flash('Login realizado com sucesso!', 'success')
+            return redirect(next_page)
+        else:
+            flash('Usuário ou senha inválidos!', 'error')
+    
+    return render_template("login.html", form=form)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash('Logout realizado com sucesso!', 'success')
+    return redirect(url_for("index"))
+
+
 @app.route("/")
 def index():
     # Get the single lawyer record
     lawyer = Lawyer.get_lawyer()
-    services = Service.query.all()
-    abouts = About.query.all()
+    services = db.session.scalars(db.select(Service)).all()
+    abouts = db.session.scalars(db.select(About)).all()
 
     # Get combined reviews (Google + manual)
     reviews = Review.get_combined_reviews(limit=6)
@@ -202,13 +261,16 @@ def index():
 
 
 @app.route("/admin")
+@login_required
 def admin():
     # Get the single lawyer record
     lawyer = Lawyer.get_lawyer()
-    services = Service.query.all()
-    abouts = About.query.all()
+    services = db.session.scalars(db.select(Service)).all()
+    abouts = db.session.scalars(db.select(About)).all()
     # Get all manual reviews for admin
-    manual_reviews = Review.query.filter_by(source="manual").all()
+    manual_reviews = db.session.scalars(
+        db.select(Review).filter_by(source="manual")
+    ).all()
     # Get Google reviews count
     try:
         google_reviews = get_google_reviews(GOOGLE_PLACE_ID)
@@ -233,6 +295,7 @@ def admin():
 
 
 @app.route("/admin/lawyer", methods=["GET", "POST"])
+@login_required
 def admin_lawyer():
     # Get the single lawyer record (or None if doesn't exist)
     lawyer = Lawyer.get_lawyer()
@@ -282,6 +345,7 @@ def admin_lawyer():
 
 
 @app.route("/admin/services", methods=["GET", "POST"])
+@login_required
 def admin_services():
     form = ServiceForm()
 
@@ -296,13 +360,16 @@ def admin_services():
         flash("Serviço adicionado com sucesso!", "success")
         return redirect(url_for("admin_services"))
 
-    services = Service.query.all()
+    services = db.session.scalars(db.select(Service)).all()
     return render_template("admin_services.html", form=form, services=services)
 
 
 @app.route("/admin/services/delete/<int:id>")
+@login_required
 def delete_service(id):
-    service = Service.query.get_or_404(id)
+    service = db.session.get(Service, id)
+    if not service:
+        abort(404)
     db.session.delete(service)
     db.session.commit()
     flash("Serviço removido com sucesso!", "success")
@@ -310,6 +377,7 @@ def delete_service(id):
 
 
 @app.route("/admin/about", methods=["GET", "POST"])
+@login_required
 def admin_about():
     form = AboutForm()
 
@@ -324,13 +392,16 @@ def admin_about():
         flash("Sobre Nós adicionado com sucesso!", "success")
         return redirect(url_for("admin_about"))
 
-    abouts = About.query.all()
+    abouts = db.session.scalars(db.select(About)).all()
     return render_template("admin_about.html", form=form, abouts=abouts)
 
 
 @app.route("/admin/about/delete/<int:id>")
+@login_required
 def delete_about(id):
-    about = About.query.get_or_404(id)
+    about = db.session.get(About, id)
+    if not about:
+        abort(404)
     db.session.delete(about)
     db.session.commit()
     flash("Sobre Nós removido com sucesso!", "success")
@@ -338,6 +409,7 @@ def delete_about(id):
 
 
 @app.route("/admin/reviews", methods=["GET", "POST"])
+@login_required
 def admin_reviews():
     form = ReviewForm()
 
@@ -354,11 +426,9 @@ def admin_reviews():
         return redirect(url_for("admin_reviews"))
 
     # Get manual reviews only (Google reviews are read-only)
-    manual_reviews = (
-        Review.query.filter_by(source="manual")
-        .order_by(Review.date_created.desc())
-        .all()
-    )
+    manual_reviews = db.session.scalars(
+        db.select(Review).filter_by(source="manual").order_by(Review.date_created.desc())
+    ).all()
 
     # Get Google reviews for display (read-only)
     try:
@@ -375,8 +445,11 @@ def admin_reviews():
 
 
 @app.route("/admin/reviews/delete/<int:id>")
+@login_required
 def delete_review(id):
-    review = Review.query.get_or_404(id)
+    review = db.session.get(Review, id)
+    if not review:
+        abort(404)
     if review.source == "manual":  # Only allow deleting manual reviews
         db.session.delete(review)
         db.session.commit()
@@ -387,6 +460,7 @@ def delete_review(id):
 
 
 @app.route("/admin/reviews/refresh-google", methods=["POST"])
+@login_required
 def refresh_google_reviews():
     """Refresh Google reviews (useful for testing)"""
     try:
@@ -398,10 +472,11 @@ def refresh_google_reviews():
 
 
 @app.route("/admin/reset-data", methods=["POST"])
+@login_required
 def admin_reset_data():
     """Reset database to original sample data (useful for development)."""
     try:
-        reset_sample_data(db, Lawyer, Service, About, Review)
+        reset_sample_data(db, Lawyer, Service, About, Review, User)
         flash("Banco de dados resetado para dados de exemplo!", "success")
     except Exception as e:
         flash(f"Erro ao resetar dados: {str(e)}", "error")
@@ -411,7 +486,7 @@ def admin_reset_data():
 with app.app_context():
     try:
         # Initialize database using the new separated structure
-        initialize_database(db, Lawyer, Service, About, Review)
+        initialize_database(db, Lawyer, Service, About, Review, User)
     except Exception as e:
         print(f"Database initialization error: {e}")
         

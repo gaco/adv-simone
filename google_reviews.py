@@ -96,48 +96,6 @@ class GoogleReviewsService:
                 pass
         return datetime.now()
 
-    def _get_mock_reviews(self) -> Dict:
-        """Return mock Google reviews for development/demo purposes"""
-        return {
-            "name": "Simone Persin Côrtes - Advocacia",
-            "rating": 4.8,
-            "user_ratings_total": 24,
-            "reviews": [
-                {
-                    "author_name": "Roberto Silva",
-                    "rating": 5,
-                    "text": "Excelente escritório de advocacia! A Dra. Simone é muito competente e resolveu minha questão trabalhista de forma eficiente. Recomendo!",
-                    "time": 1640995200,  # Mock timestamp
-                    "relative_time_description": "há 2 meses",
-                    "profile_photo_url": "",
-                },
-                {
-                    "author_name": "Fernanda Costa",
-                    "rating": 5,
-                    "text": "Profissional excepcional! Me ajudou com um processo de divórcio complexo. Muito atenciosa e esclareceu todas as dúvidas.",
-                    "time": 1638316800,
-                    "relative_time_description": "há 3 meses",
-                    "profile_photo_url": "",
-                },
-                {
-                    "author_name": "Carlos Oliveira",
-                    "rating": 4,
-                    "text": "Bom atendimento e conhecimento técnico. Resolveu questões contratuais da minha empresa com agilidade.",
-                    "time": 1635724800,
-                    "relative_time_description": "há 4 meses",
-                    "profile_photo_url": "",
-                },
-                {
-                    "author_name": "Marina Santos",
-                    "rating": 5,
-                    "text": "Advocacia de qualidade! A Dra. Simone tem um excelente conhecimento em direito civil. Super recomendo!",
-                    "time": 1633132800,
-                    "relative_time_description": "há 5 meses",
-                    "profile_photo_url": "",
-                },
-            ],
-        }
-
 
 def get_place_id_from_url(google_maps_url: str) -> Optional[str]:
     """Extract Place ID from Google Maps URL - for future implementation"""
