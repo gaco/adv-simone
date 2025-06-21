@@ -145,7 +145,38 @@
                 </ol>
             </div>
 
-            <div class="form-group">
+            <!-- Profile Image Section -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.profile_image.label(class="form-label") }}
+                        {{ form.profile_image(class="form-control" + (" is-invalid" if form.profile_image.errors else "")) }}
+                        {% if form.profile_image.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.profile_image.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Formatos aceitos: JPG, JPEG, PNG. Tamanho recomendado: 800x600 pixels.</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Imagem Atual</label>
+                    <div class="current-image">
+                        {% if lawyer and lawyer.profile_image %}
+                        <img src="{{ url_for('static', filename='images/' + lawyer.profile_image) }}" 
+                             alt="Foto de Perfil" 
+                             class="img-thumbnail" 
+                             style="max-height: 200px;">
+                        {% else %}
+                        <p class="text-muted">Nenhuma imagem carregada</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
                 <button type="submit" class="btn btn-primary btn-lg">
                     <i class="fas fa-save me-2"></i>Salvar Alterações
                 </button>

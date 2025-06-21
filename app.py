@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 from dotenv import load_dotenv
 # Load environment variables from .env file BEFORE imports that need them
@@ -9,6 +10,7 @@ load_dotenv()
 from flask import Flask, flash, redirect, render_template, url_for, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from wtforms import FloatField, IntegerField, StringField, TextAreaField, PasswordField
 from wtforms.validators import DataRequired, Email, Length
@@ -176,6 +178,9 @@ class LawyerForm(FlaskForm):
     )
     lat = FloatField("Latitude", validators=[DataRequired()])
     lng = FloatField("Longitude", validators=[DataRequired()])
+    profile_image = FileField('Foto de Perfil', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png'], 'Apenas imagens nos formatos JPG ou PNG são permitidas!')
+    ])
 
 
 class ServiceForm(FlaskForm):
@@ -312,8 +317,44 @@ def admin_lawyer():
             lawyer.address = form.address.data
             lawyer.lat = form.lat.data
             lawyer.lng = form.lng.data
+            
+            # Handle profile image upload
+            if form.profile_image.data:
+                # Secure the filename
+                filename = secure_filename(form.profile_image.data.filename)
+                # Generate unique filename to avoid overwriting
+                unique_filename = f"{int(datetime.now().timestamp())}_{filename}"
+                # Save to both static directories
+                form.profile_image.data.save(os.path.join('static/images', unique_filename))
+                # Create a copy for the images directory
+                form.profile_image.data.seek(0)  # Reset file pointer
+                form.profile_image.data.save(os.path.join('images', unique_filename))
+                # Update database
+                lawyer.profile_image = unique_filename
+                
+                # Remove old image if it exists and is not the default
+                if lawyer.profile_image != 'lawyer-hero.jpg':
+                    try:
+                        old_image_path = os.path.join('static/images', lawyer.profile_image)
+                        if os.path.exists(old_image_path):
+                            os.remove(old_image_path)
+                        old_image_path = os.path.join('images', lawyer.profile_image)
+                        if os.path.exists(old_image_path):
+                            os.remove(old_image_path)
+                    except Exception as e:
+                        print(f"Error removing old image: {e}")
         else:
             # Create new lawyer record (should only happen on first setup)
+            # Handle profile image for new lawyer
+            filename = 'lawyer-hero.jpg'  # Default image
+            if form.profile_image.data:
+                filename = secure_filename(form.profile_image.data.filename)
+                unique_filename = f"{int(datetime.now().timestamp())}_{filename}"
+                form.profile_image.data.save(os.path.join('static/images', unique_filename))
+                form.profile_image.data.seek(0)
+                form.profile_image.data.save(os.path.join('images', unique_filename))
+                filename = unique_filename
+
             lawyer = Lawyer(
                 name=form.name.data,
                 title=form.title.data,
@@ -323,11 +364,16 @@ def admin_lawyer():
                 address=form.address.data,
                 lat=form.lat.data,
                 lng=form.lng.data,
+                profile_image=filename
             )
             db.session.add(lawyer)
 
-        db.session.commit()
-        flash("Informações atualizadas com sucesso!", "success")
+        try:
+            db.session.commit()
+            flash("Informações atualizadas com sucesso!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao salvar as alterações: {str(e)}", "error")
         return redirect(url_for("admin"))
 
     # Populate form with existing data for GET request
